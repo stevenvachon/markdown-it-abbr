@@ -1,6 +1,6 @@
 // Enclose abbreviations in <abbr> tags
 //
-export default function abbr_plugin (md) {
+export default function abbr_plugin (md, { globalAbbreviations } = {}) {
   const escapeRE        = md.utils.escapeRE
   const arrayReplaceAt  = md.utils.arrayReplaceAt
 
@@ -13,6 +13,15 @@ export default function abbr_plugin (md) {
   const UNICODE_SPACE_RE = md.utils.lib.ucmicro.Z.source
 
   function abbr_def (state, startLine, endLine, silent) {
+    if (!state.env) { state.env = {} }
+    if (!state.env.abbreviations) {
+      state.env.abbreviations = Object.fromEntries(
+        Object.entries(globalAbbreviations || {})
+          // prepend ':' to avoid conflict with Object.prototype members
+          .map(([label, title]) => [`:${label}`, title])
+      )
+    }
+
     let labelEnd
     let pos = state.bMarks[startLine] + state.tShift[startLine]
     const max = state.eMarks[startLine]
@@ -46,7 +55,6 @@ export default function abbr_plugin (md) {
     const title = state.src.slice(labelEnd + 2, max).trim()
     if (label.length === 0) { return false }
     if (title.length === 0) { return false }
-    if (!state.env.abbreviations) { state.env.abbreviations = {} }
     // prepend ':' to avoid conflict with Object.prototype members
     if (typeof state.env.abbreviations[':' + label] === 'undefined') {
       state.env.abbreviations[':' + label] = title
@@ -59,6 +67,7 @@ export default function abbr_plugin (md) {
   function abbr_replace (state) {
     const blockTokens = state.tokens
 
+    if (!state.env) { return }
     if (!state.env.abbreviations) { return }
 
     const regSimple = new RegExp('(?:' +

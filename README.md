@@ -39,7 +39,13 @@ bower install markdown-it-abbr --save
 
 ```js
 var md = require('markdown-it')()
-            .use(require('markdown-it-abbr'));
+            .use(require('markdown-it-abbr'), {
+                // optional
+                globalAbbreviations: {
+                    HTML: 'Hyper Text Markup Language',
+                    W3C: 'World Wide Web Consortium'
+                }
+            });
 
 md.render(/*...*/) // see example above
 ```
